@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import math
+import os   #  Added to handle image paths safely
 
 pygame.init()
 
@@ -13,7 +14,11 @@ clock = pygame.time.Clock()
 
 # --- Helper to load and resize images ---
 def load_img(path, size):
-    img = pygame.image.load(path).convert_alpha()
+    base_path = os.path.dirname(__file__)  #  always find the folder where main.py is
+    full_path = os.path.join(base_path, path)
+    if not os.path.exists(full_path):
+        raise FileNotFoundError(f"Image not found: {full_path}")
+    img = pygame.image.load(full_path).convert_alpha()
     return pygame.transform.scale(img, size)
 
 # --- Load Backgrounds ---
@@ -102,7 +107,6 @@ class Warrior:
         self.attack_timer = pygame.time.get_ticks()
 
     def draw(self):
-        # choose image
         now = pygame.time.get_ticks()
         if self.attacking and now - self.attack_timer < 500:
             self.image = self.images["attack"]
@@ -173,40 +177,32 @@ class Game:
         self.monster_projectiles.clear()
 
     def draw_health(self):
-        # Labels
         draw_text("PLAYER HEALTH", font_label, (255, 255, 255), 50, 20)
         draw_text("MONSTER HEALTH", font_label, (255, 255, 255), 750, 20)
 
-        # Player
         pygame.draw.rect(screen, (255, 255, 255), (48, 58, 204, 24))
         pygame.draw.rect(screen, (0, 255, 0), (50, 60, self.player.health * 2, 20))
 
-        # Monster
         pygame.draw.rect(screen, (255, 255, 255), (748, 58, 204, 24))
         pygame.draw.rect(screen, (255, 0, 0), (750, 60, self.monster.health * 2, 20))
 
     def handle_player_attacks(self, keys):
-        # Sword
         if keys[pygame.K_a]:
             self.player.attack()
             if abs(self.player.x - self.monster.x) < 120:
                 self.monster.health -= 0.4
 
-        # Arrow
         if keys[pygame.K_s]:
             if len(self.projectiles) < 3:
                 self.projectiles.append(Projectile(self.player.x + 100, self.player.y + 60, 10, 0))
 
-        # Fireball
         if keys[pygame.K_d]:
             if len(self.projectiles) < 2:
                 self.projectiles.append(Projectile(self.player.x + 100, self.player.y + 60, 8, 0))
 
     def monster_attack_logic(self):
-        # Random chance for monster to attack
         if random.randint(1, 80) == 1:
             self.monster.attack()
-            # Fire projectile toward player
             dx = self.player.x - self.monster.x
             dy = (self.player.y - self.monster.y) + 40
             dist = math.hypot(dx, dy)
@@ -238,20 +234,17 @@ class Game:
         self.monster_attack_logic()
         self.check_collisions()
 
-        # Draw level
         screen.blit(bg_levels[self.level - 1], (0, 0))
         self.player.draw()
         self.monster.draw()
         self.draw_health()
 
-        # Level Title
         text = f"LEVEL {self.level}"
         outline = font_title.render(text, True, (0, 0, 0))
         label = font_title.render(text, True, (255, 255, 0))
         screen.blit(outline, (WIDTH // 2 - 140, 98))
         screen.blit(label, (WIDTH // 2 - 140, 90))
 
-        # Projectiles
         for p in self.projectiles:
             p.move()
             p.draw()
@@ -259,7 +252,6 @@ class Game:
             m.move()
             m.draw()
 
-        # Win / Lose conditions
         if self.player.health <= 0:
             self.state = "over"
         elif self.monster.health <= 0:
