@@ -2,7 +2,6 @@ import pygame
 import sys
 import random
 import math
-import os   #  Added to handle image paths safely
 
 pygame.init()
 
@@ -14,11 +13,7 @@ clock = pygame.time.Clock()
 
 # --- Helper to load and resize images ---
 def load_img(path, size):
-    base_path = os.path.dirname(__file__)  #  always find the folder where main.py is
-    full_path = os.path.join(base_path, path)
-    if not os.path.exists(full_path):
-        raise FileNotFoundError(f"Image not found: {full_path}")
-    img = pygame.image.load(full_path).convert_alpha()
+    img = pygame.image.load(path).convert_alpha()
     return pygame.transform.scale(img, size)
 
 # --- Load Backgrounds ---
@@ -123,16 +118,55 @@ class Monster:
         self.image = self.images["stand"]
         self.x = 750
         self.y = 250 if level == 2 else 400
-        self.health = 100
+        self.health = 100  # Default health for initialization
+
+        # Added health scaling based on level without changing other code
+        if level == 1:
+            self.health = 100  # Same as Hero health
+        elif level == 2:
+            self.health = 200  # Double Hero health
+        elif level == 3:
+            self.health = 300  # Triple Hero health
+
         self.level = level
         self.attack_timer = 0
         self.attack_visible = False
+
+        self.invisible = False
+        self.invisible_start_time = 0
+        self.invisible_duration = 3000
 
     def attack(self):
         self.attack_visible = True
         self.attack_timer = pygame.time.get_ticks()
 
+    def make_invisible(self):
+        self.invisible = True
+        self.invisible_start_time = pygame.time.get_ticks()
+
+        angle_to_hero = math.atan2(self.y - game.player.y, self.x - game.player.x)
+        offset = random.uniform(-math.pi / 2, math.pi / 2)
+        respawn_angle = angle_to_hero + offset
+        dist = random.randint(200, 350)
+        self.x = int(game.player.x + dist * math.cos(respawn_angle))
+        self.y = int(game.player.y + dist * math.sin(respawn_angle))
+
+        if self.level != 2:
+            self.y = 400
+
+        self.x = max(0, min(WIDTH - 150, self.x))
+        self.y = max(100, min(HEIGHT - 160, self.y))
+
+    def update_invisibility(self):
+        if self.invisible:
+            now = pygame.time.get_ticks()
+            if now - self.invisible_start_time > self.invisible_duration:
+                self.invisible = False
+
     def draw(self):
+        self.update_invisibility()
+        if self.invisible:
+            return
         now = pygame.time.get_ticks()
         if self.attack_visible and now - self.attack_timer < 500:
             self.image = self.images["attack"]
@@ -184,7 +218,7 @@ class Game:
         pygame.draw.rect(screen, (0, 255, 0), (50, 60, self.player.health * 2, 20))
 
         pygame.draw.rect(screen, (255, 255, 255), (748, 58, 204, 24))
-        pygame.draw.rect(screen, (255, 0, 0), (750, 60, self.monster.health * 2, 20))
+        pygame.draw.rect(screen, (255, 0, 0), (750, 60, self.monster.health, 20))
 
     def handle_player_attacks(self, keys):
         if keys[pygame.K_a]:
@@ -211,6 +245,13 @@ class Game:
             self.monster_projectiles.append(
                 Projectile(self.monster.x, self.monster.y + 60, dx * speed, dy * speed, True)
             )
+
+        if not self.monster.invisible and random.randint(1, 300) == 1:
+            self.monster.make_invisible()
+
+        distance = math.hypot(self.monster.x - self.player.x, self.monster.y - self.player.y)
+        if distance < 120:
+            self.player.health -= 0.5
 
     def check_collisions(self):
         for p in self.projectiles[:]:
@@ -264,7 +305,7 @@ class Game:
     def show_home(self):
         screen.blit(bg_home, (0, 0))
         draw_text("LEGEND OF WARRIOR", font_title, (255, 255, 255), 240, 150)
-        
+
         pygame.draw.rect(screen, (20, 20, 20), (360, 330, 280, 60), border_radius=15)
         pygame.draw.rect(screen, (200, 200, 0), (360, 330, 280, 60), 3, border_radius=15)
         draw_text("Press ENTER to Start", font_small, (255, 255, 0), 370, 340)
