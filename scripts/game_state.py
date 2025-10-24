@@ -69,7 +69,7 @@ class GameState:
 
         if self.state == "home":
             self.screen.blit(self.bg_home, (0, 0))
-            draw_text(self.screen, "LEGEND OF WARRIOR", font_title, (255,255,0), 220, 150)
+            draw_text(self.screen, "LEGEND OF WARRIOR", font_title, (255,255,0), 220, 120)
             draw_text(self.screen, f"Welcome {self.player_name}", font_label, (200,200,255), 350, 230)
             draw_text(self.screen, "Press ENTER to Start", font_label, (255,255,255), 350, 350)
             draw_leaderboard(self.screen, font_label, get_top_players())
