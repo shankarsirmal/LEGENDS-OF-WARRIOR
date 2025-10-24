@@ -26,7 +26,7 @@ class AudioManager:
 
     def play_sfx(self, name):
         # supports .mp3 and .wav
-        for ext in [".mp3", ".wav","m4a"]:
+        for ext in [".mp3", ".wav",".m4a"]:
             sfx_path = os.path.join(self.sound_path, f"{name}{ext}")
             if os.path.exists(sfx_path):
                 try:
