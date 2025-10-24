@@ -141,5 +141,5 @@ class GameState:
 
         elif self.state == "over":
             self.screen.fill((0,0,0))
-            draw_text(self.screen, f"💀 Game Over, {self.player_name}. Score: {self.score}", font_title, (255,0,0), 80, 250)
+            draw_text(self.screen, f"💀 Game Over, {self.player_name}. Score: {self.score}", font_title, (255,0,0), 50, 250)
             draw_text(self.screen, "Press ESC to return Home", font_label, (255,255,255), 340, 330)
