@@ -13,31 +13,47 @@ class Player(pygame.sprite.Sprite):
         sheet_img = pygame.image.load(sheet).convert_alpha()
         frame_w = sheet_img.get_width() // columns
         frame_h = sheet_img.get_height() // rows
-        action_names = ["idle", "run", "attack", "jump"][:rows]
+
+        base_actions = ["idle", "run", "attack", "jump", "special"]
+        if len(base_actions) < rows:
+            base_actions += [f"row{i}" for i in range(len(base_actions), rows)]
+        action_names = base_actions[:rows]
 
         animations = load_animations(sheet, frame_w, frame_h, columns, rows, action_names)
         self.animator = Animator(animations, frame_time=90)
-        self.image = self.animator.update()
-        self.rect = self.image.get_rect(midbottom=(200, 520))
 
+        self.image = self.animator.update()
+        self.rect = self.image.get_rect(midbottom=(200, 520))  # aligned baseline
         self.vel_y = 0
         self.jumping = False
         self.health = 100
         self.projectiles = []
         self.level = level
 
+        # consistent baseline (feet of both player & monster)
+        self.ground_bottom = 520
+
     def move(self, keys):
         if keys[pygame.K_LEFT]:
             self.rect.x -= 5
         if keys[pygame.K_RIGHT]:
             self.rect.x += 5
+
+        # Jumping
         if not self.jumping and keys[pygame.K_UP]:
-            self.jumping, self.vel_y = True, -15
+            self.jumping = True
+            self.vel_y = -18  # stronger jump
+
         if self.jumping:
             self.rect.y += self.vel_y
-            self.vel_y += 1
-            if self.rect.y >= 400:
-                self.rect.y, self.jumping = 400, False
+            self.vel_y += 1  # gravity
+            # stop at baseline
+            if self.rect.bottom >= self.ground_bottom:
+                self.rect.bottom = self.ground_bottom
+                self.jumping = False
+                self.vel_y = 0
+
+        # Clamp within screen
         self.rect.x = max(0, min(self.rect.x, 1000 - self.rect.width))
 
     def attack(self, audio):
@@ -61,6 +77,7 @@ class Player(pygame.sprite.Sprite):
             self.animator.set_animation("jump")
         else:
             self.animator.set_animation("idle")
+
         self.image = self.animator.update()
 
     def draw(self, screen):

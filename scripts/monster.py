@@ -9,16 +9,13 @@ class Monster(pygame.sprite.Sprite):
         sprites_dir = os.path.join(os.path.dirname(__file__), "..", "assets", "sprites")
         sheet = os.path.join(sprites_dir, f"monster_lvl{level}.png")
 
-        # --- Get layout (columns/rows) from config ---
         columns, rows = SPRITE_LAYOUTS["monster"][level]
         sheet_img = pygame.image.load(sheet).convert_alpha()
         frame_w = sheet_img.get_width() // columns
         frame_h = sheet_img.get_height() // rows
 
-        # --- Auto-generate enough action names ---
-        base_actions = ["idle", "attack", "walk", "death", "roar", "extra"]
+        base_actions = ["idle", "attack", "walk", "death", "roar"]
         if len(base_actions) < rows:
-            # add generic names if there are more rows
             base_actions += [f"row{i}" for i in range(len(base_actions), rows)]
         action_names = base_actions[:rows]
 
@@ -27,32 +24,52 @@ class Monster(pygame.sprite.Sprite):
 
         self.image = self.animator.update()
         self.rect = self.image.get_rect(midbottom=(800, 520))
-        self.health = 100
+        self.health = 200
         self.level = level
         self.projectiles = []
-        self.fixed_x = 800  # Monster stays fixed on right side
+        self.speed = 2 + level
+        self.attack_cooldown = 800
+        self.last_attack_time = 0
 
-    def attack(self, player, audio):
+        # Screen bounds
+        self.min_x = 500
+        self.max_x = 950
+
+    def chase_player(self, player):
+        """Monster moves toward the player."""
+        if player.rect.centerx < self.rect.centerx:
+            self.rect.x -= self.speed
+        elif player.rect.centerx > self.rect.centerx:
+            self.rect.x += self.speed
+
+        # Clamp within screen so monster is always visible
+        self.rect.x = max(self.min_x, min(self.rect.x, self.max_x))
+
+    def melee_attack(self, player, audio):
+        now = pygame.time.get_ticks()
+        if now - self.last_attack_time >= self.attack_cooldown:
+            self.animator.set_animation("attack")
+            audio.play_sfx(f"monster{min(self.level, 3)}")
+            player.health = max(0, player.health - random.randint(6, 12))
+            self.last_attack_time = now
+
+    def ranged_attack(self, player, audio):
         self.animator.set_animation("attack")
         audio.play_sfx(f"monster{min(self.level, 3)}")
         dx, dy = player.rect.centerx - self.rect.centerx, player.rect.centery - self.rect.centery
         dist = math.hypot(dx, dy) or 1
-        self.projectiles.append(
-            Projectile(self.rect.centerx, self.rect.centery, dx / dist * 8, dy / dist * 8, True)
-        )
+        self.projectiles.append(Projectile(self.rect.centerx, self.rect.centery, dx/dist*8, dy/dist*8, True))
 
     def update(self, player, audio):
-        # Stay fixed on right side
-        self.rect.x = self.fixed_x
-
-        # Random ranged attack
-        if random.randint(1, 80) == 1:
-            self.attack(player, audio)
-
-        # Proximity damage
         dist = math.hypot(player.rect.centerx - self.rect.centerx, player.rect.centery - self.rect.centery)
-        if dist < 120:
-            player.health = max(0, player.health - 0.2)
+
+        if dist > 120:
+            self.animator.set_animation("walk")
+            self.chase_player(player)
+            if random.randint(1, 120) == 1:
+                self.ranged_attack(player, audio)
+        else:
+            self.melee_attack(player, audio)
 
         self.image = self.animator.update()
 
