@@ -29,7 +29,6 @@ font_small = pygame.font.SysFont("Arial", 30, bold=True)
 
 game = GameState(Player, Monster, AudioManager, screen, bg_levels, bg_home)
 
-# Main loop
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

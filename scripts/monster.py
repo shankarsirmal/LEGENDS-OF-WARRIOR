@@ -9,7 +9,6 @@ class Monster(pygame.sprite.Sprite):
         sprites_dir = os.path.join(os.path.dirname(__file__), "..", "assets", "sprites")
         sheet = os.path.join(sprites_dir, f"monster_lvl{level}.png")
 
-        # --- Load layout and calculate frame sizes ---
         columns, rows = SPRITE_LAYOUTS["monster"][level]
         sheet_img = pygame.image.load(sheet).convert_alpha()
         frame_w = sheet_img.get_width() // columns
@@ -17,15 +16,14 @@ class Monster(pygame.sprite.Sprite):
         action_names = ["idle", "attack", "walk", "death"][:rows]
 
         animations = load_animations(sheet, frame_w, frame_h, columns, rows, action_names)
-        self.animator = Animator(animations, frame_time=100)
+        self.animator = Animator(animations, 100)
 
-        # --- Sprite properties ---
         self.image = self.animator.update()
         self.rect = self.image.get_rect(midbottom=(800, 520))
         self.health = 100
         self.level = level
         self.projectiles = []
-        self.fixed_x = 800  # Monster always stays around this position
+        self.fixed_x = 800
 
     def attack(self, player, audio):
         self.animator.set_animation("attack")
@@ -35,18 +33,12 @@ class Monster(pygame.sprite.Sprite):
         self.projectiles.append(Projectile(self.rect.centerx, self.rect.centery, dx / dist * 8, dy / dist * 8, True))
 
     def update(self, player, audio):
-        # --- Monster stays at left side / fixed position ---
         self.rect.x = self.fixed_x
-
-        # --- Attack randomly ---
         if random.randint(1, 80) == 1:
             self.attack(player, audio)
-
-        # --- Melee proximity damage ---
         dist = math.hypot(player.rect.centerx - self.rect.centerx, player.rect.centery - self.rect.centery)
         if dist < 120:
             player.health = max(0, player.health - 0.2)
-
         self.image = self.animator.update()
 
     def draw(self, screen):

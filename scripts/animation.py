@@ -1,11 +1,6 @@
 import pygame
-import os
 
 def load_animations(sheet_path, frame_width, frame_height, columns, rows, action_names=None):
-    """
-    Loads a sprite sheet and returns a dict: action_name -> [frames]
-    `action_names` length should be equal to rows. If None, rows will be named row0,row1...
-    """
     sheet = pygame.image.load(sheet_path).convert_alpha()
     animations = {}
     if action_names and len(action_names) != rows:
@@ -21,20 +16,14 @@ def load_animations(sheet_path, frame_width, frame_height, columns, rows, action
 
 class Animator:
     def __init__(self, animations, frame_time=100):
-        """
-        animations: dict name -> [frames]
-        frame_time: ms per frame
-        """
         self.animations = animations
         self.frame_time = frame_time
         self.last_update = pygame.time.get_ticks()
         self.frame_index = 0
-        self.current_anim = next(iter(animations))  # first key
+        self.current_anim = next(iter(animations))
 
     def set_animation(self, name):
-        if name not in self.animations:
-            return
-        if name != self.current_anim:
+        if name in self.animations and name != self.current_anim:
             self.current_anim = name
             self.frame_index = 0
             self.last_update = pygame.time.get_ticks()

@@ -17,4 +17,4 @@ class Projectile:
         self.rect.center = (self.x, self.y)
 
     def draw(self, screen):
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        screen.blit(self.image, self.rect)

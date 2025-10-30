@@ -1,8 +1,7 @@
 import pygame
 
 def draw_text(screen, text, font, color, x, y):
-    surface = font.render(text, True, color)
-    screen.blit(surface, (x, y))
+    screen.blit(font.render(text, True, color), (x, y))
 
 def draw_health_bars(screen, font, player_health, monster_health):
     draw_text(screen, "PLAYER HEALTH", font, (255,255,255), 50, 20)
