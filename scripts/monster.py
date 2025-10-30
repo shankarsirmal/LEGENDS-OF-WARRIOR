@@ -9,11 +9,18 @@ class Monster(pygame.sprite.Sprite):
         sprites_dir = os.path.join(os.path.dirname(__file__), "..", "assets", "sprites")
         sheet = os.path.join(sprites_dir, f"monster_lvl{level}.png")
 
+        # --- Get layout (columns/rows) from config ---
         columns, rows = SPRITE_LAYOUTS["monster"][level]
         sheet_img = pygame.image.load(sheet).convert_alpha()
         frame_w = sheet_img.get_width() // columns
         frame_h = sheet_img.get_height() // rows
-        action_names = ["idle", "attack", "walk", "death"][:rows]
+
+        # --- Auto-generate enough action names ---
+        base_actions = ["idle", "attack", "walk", "death", "roar", "extra"]
+        if len(base_actions) < rows:
+            # add generic names if there are more rows
+            base_actions += [f"row{i}" for i in range(len(base_actions), rows)]
+        action_names = base_actions[:rows]
 
         animations = load_animations(sheet, frame_w, frame_h, columns, rows, action_names)
         self.animator = Animator(animations, 100)
@@ -23,22 +30,30 @@ class Monster(pygame.sprite.Sprite):
         self.health = 100
         self.level = level
         self.projectiles = []
-        self.fixed_x = 800
+        self.fixed_x = 800  # Monster stays fixed on right side
 
     def attack(self, player, audio):
         self.animator.set_animation("attack")
         audio.play_sfx(f"monster{min(self.level, 3)}")
         dx, dy = player.rect.centerx - self.rect.centerx, player.rect.centery - self.rect.centery
         dist = math.hypot(dx, dy) or 1
-        self.projectiles.append(Projectile(self.rect.centerx, self.rect.centery, dx / dist * 8, dy / dist * 8, True))
+        self.projectiles.append(
+            Projectile(self.rect.centerx, self.rect.centery, dx / dist * 8, dy / dist * 8, True)
+        )
 
     def update(self, player, audio):
+        # Stay fixed on right side
         self.rect.x = self.fixed_x
+
+        # Random ranged attack
         if random.randint(1, 80) == 1:
             self.attack(player, audio)
+
+        # Proximity damage
         dist = math.hypot(player.rect.centerx - self.rect.centerx, player.rect.centery - self.rect.centery)
         if dist < 120:
             player.health = max(0, player.health - 0.2)
+
         self.image = self.animator.update()
 
     def draw(self, screen):
