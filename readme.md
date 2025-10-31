@@ -116,12 +116,14 @@ Example of list comprehension for sprite animation:
 frames = [sheet.subsurface((c*width, r*height, width, height))
           for r in range(rows) for c in range(columns)]
 
-## 📸 Game Screenshots
+---
+## 📸 GAME SCREENSHOTS
 
-| Home Screen | Level 1 Battle | Game Won |
-|--------------|----------------|-----------|
+| 🏠 Home Screen | ⚔️ Level 1 Battle | 🏆 Game Won |
+|----------------|------------------|-------------|
 | ![Home Screen](screenshots/home.png) | ![Level 1 Battle](screenshots/level1.png) | ![Game Won](screenshots/game_won.png) |
 
+---
 🚧 CHALLENGES FACED
 
 Aligning sprite sheets: Each level had different row-column configurations; managing frame extraction dynamically was tricky.
@@ -133,6 +135,8 @@ Sound overlap: Simultaneous effects caused delays — resolved with channel-base
 Database constraints: Needed FIFO deletion to maintain only 3 top records.
 
 Frame alignment: Adjusted sprite rect anchors to keep warrior and monster on same ground plane.
+
+---
 
 🚀 FUTURE ENHANCEMENTS
 
@@ -146,11 +150,16 @@ Create intro video/cutscene before level 1.
 
 Implement mobile-compatible UI controls.
 
+---
+
 🧩 SAMPLE DATABASE TABLE
 ID	Name	Level	High Score
 1	Shankar	3	820
 2	Soham	2	710
 3	Vrundar	3	650
+
+ ---
+
 💡 LEARNINGS & REFLECTION
 
 Through this project, the team learned:
@@ -164,6 +173,8 @@ Real-time debugging of animation and sound synchronization.
 Efficient use of SQLite databases for persistent game data.
 
 How small gameplay mechanics (physics, AI, state) work together to form a complete game loop.
+
+---
 
 🧠 KEY PYTHON & PYGAME FEATURES USED
 
@@ -187,6 +198,9 @@ SQLite3	Local leaderboard storage
 VS Code	Development environment
 GIMP / Photoshop	Sprite editing
 Audacity	Sound editing
+
+---
+
 🏆 FINAL OUTCOME
 
 The Legend of Warrior game successfully demonstrates:
@@ -201,6 +215,8 @@ Persistent player data using SQLite
 
 A complete game loop from menu → play → win/lose → leaderboard
 
+---
+
 🏁 CONCLUSION
 
 This project is a complete example of how Python and Pygame can be used to create interactive 2D games.
@@ -210,3 +226,4 @@ Developed and Submitted by:
 Batch 2 — Roll Nos. 326, 328, 331, 336
 
 “Every bug fixed taught us something new — every frame drawn made us better programmers.”
+---
