@@ -35,6 +35,11 @@ class Monster(pygame.sprite.Sprite):
         self.min_x = 500
         self.max_x = 950
 
+        # Invisibility and respawn management
+        self.visible = True
+        self.invisible_duration = 2000   # milliseconds monster stays invisible
+        self.last_invisible_time = 0
+
     def chase_player(self, player):
         """Monster moves toward the player."""
         if player.rect.centerx < self.rect.centerx:
@@ -60,7 +65,35 @@ class Monster(pygame.sprite.Sprite):
         dist = math.hypot(dx, dy) or 1
         self.projectiles.append(Projectile(self.rect.centerx, self.rect.centery, dx/dist*8, dy/dist*8, True))
 
+    def disappear_and_respawn(self, player):
+        """Handles monster disappearing and reappearing near player."""
+        now = pygame.time.get_ticks()
+
+        # Randomly trigger disappearance
+        if self.visible and random.randint(1, 600) == 1:  # 1 in 600 chance each frame
+            self.visible = False
+            self.last_invisible_time = now
+
+        # If invisible, check if it's time to respawn
+        if not self.visible and now - self.last_invisible_time >= self.invisible_duration:
+            # Respawn near player (random offset)
+            offset_x = random.randint(-150, 150)
+            offset_y = random.randint(-50, 50)
+            self.rect.centerx = player.rect.centerx + offset_x
+            self.rect.centery = player.rect.centery + offset_y
+
+            # Clamp within game area
+            self.rect.x = max(self.min_x, min(self.rect.x, self.max_x))
+            self.rect.y = max(300, min(self.rect.y, 520))  # arbitrary Y bounds
+
+            self.visible = True
+
     def update(self, player, audio):
+        self.disappear_and_respawn(player)
+
+        if not self.visible:
+            return  # Skip logic while invisible
+
         dist = math.hypot(player.rect.centerx - self.rect.centerx, player.rect.centery - self.rect.centery)
 
         if dist > 120:
@@ -74,4 +107,5 @@ class Monster(pygame.sprite.Sprite):
         self.image = self.animator.update()
 
     def draw(self, screen):
-        screen.blit(self.image, self.rect)
+        if self.visible:
+            screen.blit(self.image, self.rect)
