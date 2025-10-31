@@ -116,15 +116,12 @@ Example of list comprehension for sprite animation:
 frames = [sheet.subsurface((c*width, r*height, width, height))
           for r in range(rows) for c in range(columns)]
 
----
-
 ## 📸 Game Screenshots
 
 | Home Screen | Level 1 Battle | Game Won |
 |--------------|----------------|-----------|
 | ![Home Screen](screenshots/home.png) | ![Level 1 Battle](screenshots/level1.png) | ![Game Won](screenshots/game_won.png) |
 
----
 🚧 CHALLENGES FACED
 
 Aligning sprite sheets: Each level had different row-column configurations; managing frame extraction dynamically was tricky.
