@@ -1,6 +1,7 @@
-import pygame, time
+import pygame
 from ui import draw_text, draw_health_bars, draw_leaderboard
 from database import init_db, save_player, get_top_players
+import time
 
 class GameState:
     def __init__(self, Player, Monster, AudioManager, screen, backgrounds, bg_home):
@@ -10,6 +11,7 @@ class GameState:
         self.screen = screen
         self.bg_levels = backgrounds
         self.bg_home = bg_home
+
         self.state = "name_entry"
         self.player_name = ""
         self.level = 1
@@ -19,34 +21,40 @@ class GameState:
         self.monster = None
 
     def start_game(self):
+        """Initialize player, monster, and level-specific assets"""
         self.player = self.Player(self.level)
         self.monster = self.Monster(self.level)
-        self.audio.play_music(f"bg_music{self.level}.wav")
+
+        # Play per-level music (supports .mp3 or .wav)
+        self.audio.play_music(f"bg_music{self.level}.mp3")
         self.start_time = time.time()
 
     def handle_event(self, event):
+        """Handle key inputs and state transitions"""
         if self.state == "name_entry":
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN and self.player_name:
                     self.state = "home"
                 elif event.key == pygame.K_BACKSPACE:
                     self.player_name = self.player_name[:-1]
-                elif getattr(event, "unicode", "").isprintable() and len(self.player_name) < 12:
-                    self.player_name += event.unicode
+                else:
+                    if len(self.player_name) < 12 and getattr(event, "unicode", "").isprintable():
+                        self.player_name += event.unicode
 
         elif self.state == "home":
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN and self.player_name:
                     self.state = "play"
                     self.start_game()
                 elif event.key == pygame.K_q:
-                    pygame.quit(); exit()
+                    pygame.quit()
+                    exit()
 
         elif self.state == "play":
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     self.paused = not self.paused
-                elif event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE:
                     save_player(self.player_name, self.level, self.score)
                     self.state = "home"
 
@@ -55,17 +63,18 @@ class GameState:
                 self.state = "home"
 
     def update(self, font_label, font_title, font_small):
+        """Main update loop controlling all game states"""
         if self.state == "name_entry":
             self.screen.fill((0, 0, 0))
-            draw_text(self.screen, "ENTER YOUR NAME", font_title, (255,255,255), 300, 200)
-            pygame.draw.rect(self.screen, (255,255,255), (350, 300, 300, 50), 2)
-            draw_text(self.screen, self.player_name, font_label, (255,255,0), 360, 310)
+            draw_text(self.screen, "ENTER YOUR NAME", font_title, (255, 255, 255), 300, 200)
+            pygame.draw.rect(self.screen, (255, 255, 255), (350, 300, 300, 50), 2)
+            draw_text(self.screen, self.player_name, font_label, (255, 255, 0), 360, 310)
             return
 
         if self.state == "home":
             self.screen.blit(self.bg_home, (0, 0))
-            draw_text(self.screen, "LEGEND OF WARRIOR", font_title, (255,255,0), 220, 100)
-            draw_text(self.screen, f"Welcome {self.player_name}", font_label, (200,200,255), 380, 180)
+            draw_text(self.screen, "LEGEND OF WARRIOR", font_title, (255, 255, 0), 220, 100)
+            draw_text(self.screen, f"Welcome, {self.player_name}", font_label, (200, 200, 255), 370, 180)
             draw_leaderboard(self.screen, font_label, get_top_players())
             return
 
@@ -75,7 +84,7 @@ class GameState:
                 overlay.set_alpha(150)
                 overlay.fill((0, 0, 0))
                 self.screen.blit(overlay, (0, 0))
-                draw_text(self.screen, "⏸ PAUSED - Press P to resume", font_title, (255,255,255), 150, 250)
+                draw_text(self.screen, "⏸ PAUSED - Press P to resume", font_title, (255, 255, 255), 150, 250)
                 return
 
             keys = pygame.key.get_pressed()
@@ -83,31 +92,31 @@ class GameState:
             self.player.update(keys, self.audio)
             self.monster.update(self.player, self.audio)
 
+            # 🧠 Collision detection for fireballs (player attacks)
             for p in self.player.projectiles[:]:
                 p.move()
                 if p.rect.colliderect(self.monster.rect):
-                    self.monster.health -= 2
-                    self.score += 10
+                    self.monster.health -= 4
+                    self.score += 15
                     self.player.projectiles.remove(p)
-                elif p.x > 1200:
-                    self.player.projectiles.remove(p)
+                elif p.x > 1200 or p.y < -100 or p.y > 1000:
+                    try:
+                        self.player.projectiles.remove(p)
+                    except:
+                        pass
 
-            for m in self.monster.projectiles[:]:
-                m.move()
-                if m.rect.colliderect(self.player.rect):
-                    self.player.health -= 3
-                    self.monster.projectiles.remove(m)
-                elif m.x < -100:
-                    self.monster.projectiles.remove(m)
-
-            self.screen.blit(self.bg_levels[self.level-1], (0,0))
+            # 🖼 Draw gameplay elements
+            self.screen.blit(self.bg_levels[self.level - 1], (0, 0))
             self.player.draw(self.screen)
             self.monster.draw(self.screen)
-            for p in self.player.projectiles: p.draw(self.screen)
-            for m in self.monster.projectiles: m.draw(self.screen)
-            draw_health_bars(self.screen, font_label, self.player.health, self.monster.health)
-            draw_text(self.screen, f"{self.player_name} | SCORE: {self.score}", font_label, (255,255,0), 40, 560)
 
+            for p in self.player.projectiles:
+                p.draw(self.screen)
+
+            draw_health_bars(self.screen, font_label, self.player.health, self.monster.health)
+            draw_text(self.screen, f"{self.player_name} | SCORE: {self.score}", font_label, (255, 255, 0), 40, 560)
+
+            # 💀 Win/Loss logic
             if self.player.health <= 0:
                 save_player(self.player_name, self.level, self.score)
                 self.state = "over"
@@ -120,13 +129,11 @@ class GameState:
                     self.start_game()
 
         elif self.state == "win":
-            self.screen.fill((0,0,0))
-            draw_text(self.screen, f"🏆 YOU WON! {self.player_name}", font_title, (255,255,0), 200, 250)
-            draw_text(self.screen, f"Score: {self.score}", font_label, (255,255,255), 440, 320)
-            draw_text(self.screen, "Press ESC to return Home", font_label, (255,255,255), 340, 380)
+            self.screen.fill((0, 0, 0))
+            draw_text(self.screen, f"🏆 You Won, {self.player_name}! Score: {self.score}", font_title, (255, 255, 0), 150, 250)
+            draw_text(self.screen, "Press ESC to return Home", font_label, (255, 255, 255), 340, 330)
 
         elif self.state == "over":
-            self.screen.fill((0,0,0))
-            draw_text(self.screen, f"💀 GAME OVER {self.player_name}", font_title, (255,0,0), 220, 250)
-            draw_text(self.screen, f"Score: {self.score}", font_label, (255,255,255), 440, 320)
-            draw_text(self.screen, "Press ESC to return Home", font_label, (255,255,255), 340, 380)
+            self.screen.fill((0, 0, 0))
+            draw_text(self.screen, f"💀 Game Over, {self.player_name}. Score: {self.score}", font_title, (255, 0, 0), 50, 250)
+            draw_text(self.screen, "Press ESC to return Home", font_label, (255, 255, 255), 340, 330)

@@ -29,6 +29,7 @@ font_small = pygame.font.SysFont("Arial", 30, bold=True)
 
 game = GameState(Player, Monster, AudioManager, screen, bg_levels, bg_home)
 
+# Main loop
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -39,3 +40,4 @@ while True:
     game.update(font_label, font_title, font_small)
     pygame.display.update()
     clock.tick(60)
+s

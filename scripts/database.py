@@ -3,7 +3,6 @@ import sqlite3, os
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "game_data.db")
 
 def init_db():
-    """Initialize the database and create table if not exists."""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -20,7 +19,7 @@ def init_db():
 
 
 def save_player(name, level, score):
-    """Insert or update player score, then keep only top 3."""
+    """Save or update player record. Keeps only top 3 records in DB."""
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
@@ -35,11 +34,12 @@ def save_player(name, level, score):
     else:
         cur.execute("INSERT INTO players (name, level, high_score) VALUES (?, ?, ?)", (name, level, score))
 
-    # Keep only top 3 players by score
-    cur.execute("SELECT id FROM players ORDER BY high_score DESC, id ASC")
+    conn.commit()
+
+    # Keep only top 3 players (delete others)
+    cur.execute("SELECT id FROM players ORDER BY high_score DESC")
     all_ids = [r[0] for r in cur.fetchall()]
     if len(all_ids) > 3:
-        # Delete oldest/lower ones (FIFO style)
         to_delete = all_ids[3:]
         cur.executemany("DELETE FROM players WHERE id = ?", [(i,) for i in to_delete])
 
@@ -48,10 +48,10 @@ def save_player(name, level, score):
 
 
 def get_top_players(limit=3):
-    """Fetch top 3 high-score players."""
+    """Fetch top 3 players by high score."""
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("SELECT name, high_score FROM players ORDER BY high_score DESC, id ASC LIMIT ?", (limit,))
+    cur.execute("SELECT name, high_score FROM players ORDER BY high_score DESC LIMIT ?", (limit,))
     rows = cur.fetchall()
     conn.close()
     return rows
