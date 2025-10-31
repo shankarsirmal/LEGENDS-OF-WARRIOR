@@ -111,11 +111,6 @@ Stores sprite layout configurations (rows, columns per level) for dynamic animat
 | **Audio Integration** | Managed multiple background tracks and layered sound effects |
 | **Exception Handling** | Added file validation and missing resource checks |
 
-Example of list comprehension for sprite animation:
-```python
-frames = [sheet.subsurface((c*width, r*height, width, height))
-          for r in range(rows) for c in range(columns)]
-
 ---
 ## 📸 GAME SCREENSHOTS
 
