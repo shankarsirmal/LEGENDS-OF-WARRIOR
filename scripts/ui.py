@@ -18,7 +18,7 @@ def draw_health_bars(screen, font, player_health, monster_health):
     pygame.draw.rect(screen, (255,0,0), (750,60,monster_bar_width,20))
 
 def draw_leaderboard(screen, font, players):
-    draw_text(screen, "🏅 TOP PLAYERS 🏅", font, (255,255,0), 400, 420)
+    draw_text(screen, "TOP PLAYERS ", font, (255,255,0), 400, 420)
     y = 460
     for name, score in players:
         draw_text(screen, f"{name:<12} - {score:>4}", font, (255,255,255), 420, y)
