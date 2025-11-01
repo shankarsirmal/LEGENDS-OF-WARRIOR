@@ -84,7 +84,7 @@ class GameState:
                 overlay.set_alpha(150)
                 overlay.fill((0, 0, 0))
                 self.screen.blit(overlay, (0, 0))
-                draw_text(self.screen, "⏸ PAUSED - Press P to resume", font_title, (255, 255, 255), 150, 250)
+                draw_text(self.screen, "PAUSED - Press P to resume", font_title, (255, 255, 255), 150, 250)
                 return
 
             keys = pygame.key.get_pressed()
@@ -92,7 +92,7 @@ class GameState:
             self.player.update(keys, self.audio)
             self.monster.update(self.player, self.audio)
 
-            # 🧠 Collision detection for fireballs (player attacks)
+            #  Collision detection for fireballs (player attacks)
             for p in self.player.projectiles[:]:
                 p.move()
                 if p.rect.colliderect(self.monster.rect):
@@ -105,7 +105,7 @@ class GameState:
                     except:
                         pass
 
-            # 🖼 Draw gameplay elements
+            # Draw gameplay elements
             self.screen.blit(self.bg_levels[self.level - 1], (0, 0))
             self.player.draw(self.screen)
             self.monster.draw(self.screen)
@@ -116,7 +116,7 @@ class GameState:
             draw_health_bars(self.screen, font_label, self.player.health, self.monster.health)
             draw_text(self.screen, f"{self.player_name} | SCORE: {self.score}", font_label, (255, 255, 0), 40, 560)
 
-            # 💀 Win/Loss logic
+            #  Win/Loss logic
             if self.player.health <= 0:
                 save_player(self.player_name, self.level, self.score)
                 self.state = "over"
@@ -130,7 +130,7 @@ class GameState:
 
         elif self.state == "win":
             self.screen.fill((0, 0, 0))
-            draw_text(self.screen, f"🏆 You Won, {self.player_name}! Score: {self.score}", font_title, (255, 255, 0), 150, 250)
+            draw_text(self.screen, f" You Won, {self.player_name}! Score: {self.score}", font_title, (255, 255, 0), 150, 250)
             draw_text(self.screen, "Press ESC to return Home", font_label, (255, 255, 255), 340, 330)
 
         elif self.state == "over":
