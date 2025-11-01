@@ -18,7 +18,7 @@ class AudioManager:
                 break
 
         if not found_path:
-            print(f"⚠️ Music file not found for: {filename}")
+            print(f"Music file not found for: {filename}")
             return
 
         try:
@@ -27,9 +27,9 @@ class AudioManager:
                 pygame.mixer.music.load(found_path)
                 pygame.mixer.music.play(loop)
                 self.current_music = found_path
-                print(f"🎵 Playing music: {os.path.basename(found_path)}")
+                print(f" Playing music: {os.path.basename(found_path)}")
         except Exception as e:
-            print(f"❌ Error playing music {found_path}: {e}")
+            print(f"Error playing music {found_path}: {e}")
 
     def stop_music(self):
         pygame.mixer.music.stop()
@@ -45,5 +45,5 @@ class AudioManager:
                     sfx.play()
                     return
                 except Exception as e:
-                    print(f"❌ Error playing sfx {sfx_path}: {e}")
-        print(f"⚠️ SFX not found for: {name}")
+                    print(f" Error playing sfx {sfx_path}: {e}")
+        print(f" SFX not found for: {name}")
