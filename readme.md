@@ -150,7 +150,7 @@ Implement mobile-compatible UI controls.
 🧩 SAMPLE DATABASE TABLE
 ID	Name	Level	High Score
 1	Shankar	3	820
-2	Soham	2	710
+2	Soham	2	750
 3	Vrundar	3	650
 
  ---
@@ -221,4 +221,5 @@ Developed and Submitted by:
 Batch 2 — Roll Nos. 326, 328, 331, 336
 
 “Every bug fixed taught us something new — every frame drawn made us better programmers.”
+
 ---
